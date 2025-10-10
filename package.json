@@ -1,0 +1,29 @@
+{
+  "name": "bbc-comments-bdd",
+  "version": "1.0.0",
+  "description": "Playwright JavaScript BDD framework for BBC comments testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "cucumber-js",
+    "setup": "npx playwright install"
+  },
+  "keywords": [
+    "playwright",
+    "bdd",
+    "cucumber",
+    "javascript",
+    "testing",
+    "automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@cucumber/cucumber": "^10.9.0",
+    "@playwright/test": "^1.47.0",
+    "multiple-cucumber-html-reporter": "^3.6.2"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.10",
+    "fs-extra": "^11.2.0"
+  }
+}
