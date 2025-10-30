@@ -5,6 +5,7 @@ module.exports = {
     password: 'Prisuris@12345'
   },
   baseUrl: 'https://www.test.bbc.co.uk/sport/articles/cj2ne09x2j0o?mode=testData',
+  reportsUrl: 'https://www.test.bbc.co.uk/moderation/reports/',
   testData: {
     comment: `This is an automated comment for testing ${Math.floor(Math.random() * 900) + 100}`,
     reply: 'This is an automated reply for testing'

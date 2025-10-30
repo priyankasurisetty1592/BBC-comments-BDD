@@ -23,7 +23,7 @@ module.exports = {
     tags: 'not @skip',
     
     // Retry failed scenarios
-    retry: 1,
+    retry: 0,
     
     // Timeout for steps (in milliseconds)
     timeout: 60000,

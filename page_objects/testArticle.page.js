@@ -2,46 +2,39 @@ const { expect } = require('@playwright/test');
 const config = require('../utils/config');
 
 class TestArticlePage {
+
+  
   constructor(page) {
     this.page = page;
-    
     // --- Page Element Locators ---
-    // These are like "addresses" to find elements on the page
     this.viewCommentsButton = page.getByRole('button', { name: /view comments/i });
     this.signInRegisterContainer = page.locator('.ssrcss-2438lo-SignInCallToActionWrapper').first();
     this.commentsContainer = page.getByTestId('comments-container');
     this.replyButton = page.getByRole('button', { name: /reply/i });
     this.likeButton = page.getByRole('button', { name: /like/i });
-    // Sign-in prompt can appear in different forms - use multiple selectors
     this.signInPrompt = page.locator('text=/sign in|register/i').first();
-    
-    // --- Signed-in User Elements ---
     this.signedInUserLink = page.getByRole('link', { name: /Hello123/i });
     this.commentInputTextbox = page.getByRole('textbox', { name: /You have.*characters/i });
     this.postCommentButton = page.getByRole('button', { name: /Post your comment/i });
-    
-    // --- Reply Elements ---
     this.replyTextbox = page.getByRole('textbox', { name: /Your reply to.*You have.*characters/i });
     this.replyPostButton = page.getByRole('button', { name: /Post your comment/i });
-    
-    // --- Like/Reaction Elements ---
     this.likeButtonLocator = page.getByRole('button', { name: /Like comment\. Number of likes: \d+/i });
-    
-    // --- Dynamic Elements (used in validation) ---
     this.replyButtonTestId = page.getByTestId('comment-reply-button');
     this.signedInText = page.locator('text=/You\'re signed in/i');
     this.replyIndicator = page.locator('text=/to .*/i');
     this.commentInputWrite = page.getByRole('textbox', { name: /write a comment/i });
-    this.testOverlay = page.getByTestId('test-overlay');
-    // Duplicate comment message could appear as text, alert, or status message
+    this.testOverlay = page.getByRole('button',{ name: 'Maybe later'});
     this.duplicateCommentMessage = page.locator('text=/duplicate|already received|already submitted/i');
     this.commentBody = page.locator('.ssrcss-z6zspr-CommentBody');
-    // Timestamp locator - uses the specific class for date/time
     this.commentTimestamp = page.locator('.ssrcss-12ecbq8-Date');
-    
-    // --- Top Navigation Sign-in Locator ---
-    // Using first link in the account navigation list item (works for both signed in/out states)
     this.topSignInLink = page.getByTestId('header-content').getByRole('link', { name: 'Sign in' });
+
+    // --- MCP Scenario Locators ---
+    this.threeDotMenuButton = page.getByTestId('comment-report-button');
+    this.reportCommentOption = page.getByRole('link', { name: 'Report Comment (opens a new' });
+    this.commentItems = page.getByTestId('comment-item');
+    this.showDropdown = page.getByTestId('show-dropdown');
+    this.firstComment = page.getByTestId('comment-item').first();
   }
 
 
@@ -49,7 +42,7 @@ class TestArticlePage {
 
   async navigateToArticle() {
     await this.page.goto(config.baseUrl);
-    await this.page.waitForLoadState('domcontentloaded');
+    //await this.page.waitForLoadState('domcontentloaded');
   }
 
   //Click on the "Your account" sign-in link at the top of the page
@@ -91,9 +84,11 @@ class TestArticlePage {
       console.log('Comments already visible, skipping button click');
       return;
     }
-
-    // Remove any overlay that might block the button
-    await this.removeTestOverlay();
+    
+    if (await this.testOverlay.isVisible().catch(() => false)) {
+    await this.testOverlay.click();
+    await this.page.waitForTimeout(500);
+    }
     
     // Wait for the view comments button
     await this.viewCommentsButton.waitFor({ state: 'visible', timeout: 15000 });
@@ -122,7 +117,7 @@ class TestArticlePage {
   async clickLikeOnFirstComment() {
     const likeBtn = this.commentsContainer.locator(this.likeButton).first();
     await likeBtn.waitFor({ state: 'visible', timeout: 10000 });
-    await likeBtn.click();
+    await likeBtn.click({ force: true });
   }
 
   // ==================== SIGNED-IN USER ACTION METHODS ====================
@@ -156,35 +151,37 @@ class TestArticlePage {
   }
 
   // Verify duplicate comment message is displayed
-  async verifyDuplicateCommentMessage(expectedMessage) {
-    await this.page.waitForTimeout(1000);
+  async verifyDuplicateCommentMessage() {
+    // Wait for the duplicate message to appear (up to 5 seconds)
+  await expect(this.duplicateCommentMessage.first()).toBeVisible({ timeout: 5000 });
+    // await this.page.waitForTimeout(1000);
     
-    // Try multiple strategies to find the duplicate message
-    const locators = [
-      this.duplicateCommentMessage,
-      this.page.getByRole('alert'),
-      this.page.getByRole('status'),
-      this.page.locator('[aria-live]'),
-      this.page.locator('text=/has already been|already posted|duplicate/i')
-    ];
+    // // Try multiple strategies to find the duplicate message
+    // const locators = [
+    //   this.duplicateCommentMessage,
+    //   this.page.getByRole('alert'),
+    //   this.page.getByRole('status'),
+    //   this.page.locator('[aria-live]'),
+    //   this.page.locator('text=/has already been|already posted|duplicate/i')
+    // ];
     
-    let found = false;
-    for (const locator of locators) {
-      try {
-        await expect(locator.first()).toBeVisible({ timeout: 3000 });
-        console.log('Found duplicate message with locator');
-        found = true;
-        break;
-      } catch (e) {
-        // Try next locator
-      }
-    }
+    // let found = false;
+    // for (const locator of locators) {
+    //   try {
+    //     await expect(locator.first()).toBeVisible({ timeout: 3000 });
+    //     console.log('Found duplicate message with locator');
+    //     found = true;
+    //     break;
+    //   } catch (e) {
+    //     // Try next locator
+    //   }
+    // }
     
-    if (!found) {
-      // Take a screenshot for debugging
-      await this.page.screenshot({ path: `reports/duplicate-debug-${Date.now()}.png`, fullPage: true });
-      throw new Error('Duplicate comment message not found with any locator strategy');
-    }
+    // if (!found) {
+    //   // Take a screenshot for debugging
+    //   await this.page.screenshot({ path: `reports/duplicate-debug-${Date.now()}.png`, fullPage: true });
+    //   throw new Error('Duplicate comment message not found with any locator strategy');
+    // }
   }
 
   // ==================== REPLY TO COMMENT METHODS ====================
@@ -390,14 +387,79 @@ class TestArticlePage {
     await expect(messageLocator).toBeVisible({ timeout: 10000 });
   }
 
+  // Click the three-dot menu button for the first comment
+  async clickThreeDotMenu() {
+    await this.waitForCommentsToLoad();
+   // await this.threeDotMenuButton.waitFor({ state: 'visible', timeout: 10000 });
+    await this.threeDotMenuButton.first().click();
+  }
+
+  // Assert that the Report Comment option is visible
+  async assertReportCommentOptionVisible() {
+    await expect(this.reportCommentOption).toBeVisible({ timeout: 5000 });
+  }
+
+  // Click the Report Comment option and capture the new page
+  async clickReportCommentOption() {
+    await this.reportCommentOption.waitFor({ state: 'visible', timeout: 5000 });
+    const [newPage] = await Promise.all([
+      this.page.context().waitForEvent('page'),
+      this.reportCommentOption.click()
+    ]);
+    await newPage.waitForLoadState('load');
+    this.reportPage = newPage;
+  }
+  async assertReportCommentsPageNavigation() {
+    if (!this.reportPage) {
+      throw new Error('No report page found. Did you call clickReportCommentOption()?');
+    }
+    await this.reportPage.waitForLoadState('load');
+    expect(this.reportPage.url()).toContain(config.reportsUrl);
+  }
+  // Assert at least 3 comments are visible
+  async assertAtLeastThreeCommentsVisible() {
+    const count = await this.commentItems.count();
+    expect(count).toBeGreaterThanOrEqual(3);
+  }
+
+  // Assert the Show dropdown is present
+  async assertShowDropdownPresent() {
+    await expect(this.showDropdown).toBeVisible({ timeout: 5000 });
+  }
+
+  // Select the 'Latest' option from the Show dropdown
+  async selectLatestFromShowDropdown() {
+    await this.showDropdown.selectOption('latest');
+  }
+
+  // Assert the first comment is the latest (timestamp is present)
+  async assertLatestCommentFirst() {
+  const commentCount = await this.commentItems.count();
+  if (commentCount === 0) return;
+
+  // Get the timestamp of the first comment
+  const firstComment = this.commentItems.nth(0);
+  const firstTsText = await firstComment.getByTestId('comment-timestamp').textContent();
+  const firstDate = new Date(firstTsText);
+
+  // Compare with all other comments
+  for (let i = 1; i < commentCount; i++) {
+    const comment = this.commentItems.nth(i);
+    const tsText = await comment.getByTestId('comment-timestamp').textContent();
+    const date = new Date(tsText);
+    expect(firstDate.getTime()).toBeGreaterThanOrEqual(date.getTime());
+  }
+}
+
   // ==================== HELPER METHODS ====================
 
-  async removeTestOverlay() {
-    const overlayCount = await this.testOverlay.count();
-    if (overlayCount > 0) {
-      await this.testOverlay.evaluate(el => el.remove());
-    }
-  }
+  // async removeTestOverlay() {
+  //   await this.testOverlay.click();
+  //   // const overlayCount = await this.testOverlay.count();
+  //   // if (overlayCount > 0) {
+  //   //   await this.testOverlay.evaluate(el => el.remove());
+  //   // }
+  // }
 
   async waitForCommentsToLoad() {
     // Wait for reply button to appear (this indicates comments are loaded)
@@ -406,6 +468,7 @@ class TestArticlePage {
       timeout: 30000 
     });
   }
+
 }
 
 module.exports = TestArticlePage;

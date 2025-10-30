@@ -4,7 +4,6 @@ const { expect } = require('@playwright/test');
 const { Before } = require('@cucumber/cucumber');
 const config = require('../utils/config');
 
-let pm; // PageManager instance
 
 // ----------------- Hooks -----------------
 Before(async function () {
@@ -183,6 +182,52 @@ Then('I should see the message {string}', async function (expectedMessage) {
   await testArticlePage.verifyReactOnceMessage(expectedMessage);
 });
 
+
+// ========== Report Comment Scenario Steps ==========
+When('I click on the three dot button for the first comment', async function () {
+  const testArticlePage = pm.getTestArticlePage();
+  await testArticlePage.clickThreeDotMenu();
+});
+
+Then('I should see Report Comment', async function () {
+  const testArticlePage = pm.getTestArticlePage();
+  await testArticlePage.assertReportCommentOptionVisible();
+});
+
+When('I click on Report Comment', async function () {
+  const testArticlePage = pm.getTestArticlePage();
+  await testArticlePage.clickReportCommentOption();
+});
+
+Then('I should be on the report comment page', async function () {
+  const testArticlePage = pm.getTestArticlePage();
+  await testArticlePage.assertReportCommentsPageNavigation();
+  // await testArticlePage.page.waitForURL(config.reportsUrl, { timeout: 10000 });
+  // expect(testArticlePage.page.url()).toBe(config.reportsUrl);
+  // Optionally, check for a unique element:
+  // await expect(testArticlePage.page.getByTestId('report-comment-form')).toBeVisible();
+});
+
+// ========== Sort Comments by Latest Scenario Steps ==========
+Given('at least 3 comments are visible in the list', async function () {
+  const testArticlePage = pm.getTestArticlePage();
+  await testArticlePage.assertAtLeastThreeCommentsVisible();
+});
+
+Given('the Show dropdown is present', async function () {
+  const testArticlePage = pm.getTestArticlePage();
+  await testArticlePage.assertShowDropdownPresent();
+});
+
+When("I select the 'Latest' option from the Show dropdown", async function () {
+  const testArticlePage = pm.getTestArticlePage();
+  await testArticlePage.selectLatestFromShowDropdown();
+});
+
+Then('I should see latest comments first', async function () {
+  const testArticlePage = pm.getTestArticlePage();
+  await testArticlePage.assertLatestCommentFirst();
+});
 
 
 

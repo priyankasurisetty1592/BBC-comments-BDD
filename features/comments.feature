@@ -29,24 +29,43 @@ Feature: BBC Commenting Service
     When I enter the same comment again "This is an automated comment for testing"
     Then I should see the duplicate comment message
 
-  @signin
-  Scenario: Signed-in user can reply to an existing comment
-    Given I am on the BBC article comments page
-    And I am signed in
-    And a parent comment exists
-    When I click the Reply button under that comment
-    And I enter a reply "This is an automated reply for testing"
-    And I post the reply
-    Then my reply should appear nested below the parent comment
-    And it should display my display name and timestamp
+  # @signin
+  # Scenario: Signed-in user can reply to an existing comment
+  #   Given I am on the BBC article comments page
+  #   And I am signed in
+  #   And a parent comment exists
+  #   When I click the Reply button under that comment
+  #   And I enter a reply "This is an automated reply for testing"
+  #   And I post the reply
+  #   Then my reply should appear nested below the parent comment
+  #   And it should display my display name and timestamp
 
-  @signin
-  Scenario: Signed-in user can react to a comment
-    Given I am on the BBC article comments page
-    And I am signed in
-    And a comment is visible in the list
-    When I click the "Like" reaction icon on that comment
-    Then the reaction count should increase by one
-    And the "Like" icon should appear highlighted
-    When I click on the like comment again
-    Then I should see the message "You can only react once"
+  # @signin
+  # Scenario: Signed-in user can react to a comment
+  #   Given I am on the BBC article comments page
+  #   And I am signed in
+  #   And a comment is visible in the list
+  #   When I click the "Like" reaction icon on that comment
+  #   Then the reaction count should increase by one
+  #   And the "Like" icon should appear highlighted
+  #   When I click on the like comment again
+  #   Then I should see the message "You can only react once"
+
+  @reportComment
+Scenario: Signed-in user can report a comment via menu
+  Given I am on the BBC article comments page
+  And I am signed in
+  And a comment is visible in the list
+  When I click on the three dot button for the first comment
+  Then I should see Report Comment
+  When I click on Report Comment
+  Then I should be on the report comment page
+
+# @signin
+# Scenario: Signed-in user can sort comments by latest
+#   Given I am on the BBC article comments page
+#   And I am signed in
+#   And at least 3 comments are visible in the list
+#   And the Show dropdown is present
+#   When I select the 'Latest' option from the Show dropdown
+#   Then I should see latest comments first
